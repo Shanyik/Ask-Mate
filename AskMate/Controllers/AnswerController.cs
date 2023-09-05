@@ -27,4 +27,13 @@ public class AnswerController : ControllerBase
 
         return Ok(repository.Create(answer));
     }
+    
+    [HttpDelete("{id}")]
+    public IActionResult Delete(int id)
+    {
+        var repository = new AnswerRepository(new NpgsqlConnection(_connectionString));
+        repository.Delete(id);
+
+        return Ok();
+    }
 }
