@@ -35,7 +35,7 @@ CREATE TABLE questions (
 CREATE TABLE answers (
     id SERIAL PRIMARY KEY,
     message VARCHAR(255),
-    question_id smallint NOT NULL,
+    question_id int NOT NULL,
     submission_time DATE
 );
 

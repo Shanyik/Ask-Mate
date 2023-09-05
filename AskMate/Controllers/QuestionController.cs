@@ -1,4 +1,5 @@
-﻿using AskMate.Model.Repositories;
+﻿using AskMate.Model;
+using AskMate.Model.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 
@@ -25,5 +26,13 @@ public class QuestionController : ControllerBase
         var repository = new QuestionRepository(new NpgsqlConnection(_connectionString));
 
         return Ok(repository.GetById(id));
+    }
+
+    [HttpPost()]
+    public IActionResult Create(Question question)
+    {
+        var repository = new QuestionRepository(new NpgsqlConnection(_connectionString));
+
+        return Ok(repository.Create(question));
     }
 }
