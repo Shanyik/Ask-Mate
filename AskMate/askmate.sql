@@ -39,6 +39,14 @@ CREATE TABLE answers (
     submission_time DATE
 );
 
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255),
+    email VARCHAR(255),
+    password VARCHAR(255),
+    registration_time DATE
+);
+
 INSERT INTO questions VALUES ('1','C# definition', 'I would like to ask what is the definition of c#', NOW());
 INSERT INTO questions VALUES ('2','JS definition', 'I would like to ask what is the definition of js', NOW());
 INSERT INTO questions VALUES ('3','Python definition', 'I would like to ask what is the definition of python', NOW());
@@ -47,3 +55,5 @@ INSERT INTO answers VALUES ('1','Dummy c# definition answer', 1, NOW());
 INSERT INTO answers VALUES ('2','Dummy c# definition answer 2', 1, NOW());
 INSERT INTO answers VALUES ('3','Dummy js definition answer', 2, NOW());
 INSERT INTO answers VALUES ('4','Dummy python definition answer', 3, NOW());
+
+INSERT INTO users VALUES ('1','Kenyik', 'kenyik@codecool.hu','Incorrect', NOW());
