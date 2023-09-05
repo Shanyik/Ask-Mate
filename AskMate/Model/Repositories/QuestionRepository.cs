@@ -15,8 +15,8 @@ public class QuestionRepository
     public List<Question> GetAll()
     {
         _connection.Open();
-        var adapter = new NpgsqlDataAdapter("SELECT * FROM questions " +
-                                                            "ORDER BY published_date", _connection);
+        var adapter = new NpgsqlDataAdapter("SELECT * FROM questions" +
+                                            "               ORDER BY submission_time", _connection);
 
         var dataSet = new DataSet();
         adapter.Fill(dataSet);
@@ -28,9 +28,9 @@ public class QuestionRepository
             queryResult.Add(new Question
             {
                 Id = (int)row["id"],
-                QuestionContent = (string)row["question_content"],
-                Username = (string)row["username"],
-                PublishedDate = (DateTime)row["published_date"]
+                Title = (string)row["title"],
+                Description = (string)row["description"],
+                SubmissionTime = (DateTime)row["submission_time"]
             });
         }
 
