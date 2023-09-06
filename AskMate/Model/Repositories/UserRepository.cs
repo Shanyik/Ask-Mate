@@ -1,4 +1,10 @@
 ﻿using System.Data;
+using System.Net;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+
 using Npgsql;
 
 namespace AskMate.Model.Repositories;
@@ -51,5 +57,37 @@ public class UserRepository
         _connection.Close();
 
         return lastInsertId;
+    }
+
+    public List<Claim> Login(User user)
+    {
+        _connection.Open();
+
+        var adapter = new NpgsqlDataAdapter("SELECT * FROM users WHERE username = :username", _connection);
+        adapter.SelectCommand?.Parameters.AddWithValue(":username", user.Username);
+
+        var dataSet = new DataSet();
+        adapter.Fill(dataSet);
+        var table = dataSet.Tables[0];
+
+        if (table.Rows.Count > 0)
+        {
+            DataRow row = table.Rows[0];
+
+            if ((user.Username == (string)row["username"] || user.Email == (string)row["email"]) &&
+                user.Password == (string)row["password"])
+            {
+                _connection.Close();
+                return new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.Role, "user")
+                };
+            }
+
+            
+        }
+        _connection.Close();
+        return null;
     }
 }

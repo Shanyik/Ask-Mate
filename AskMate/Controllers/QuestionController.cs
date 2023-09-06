@@ -1,5 +1,6 @@
 ﻿using AskMate.Model;
 using AskMate.Model.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 
@@ -28,7 +29,7 @@ public class QuestionController : ControllerBase
         return Ok(repository.GetById(id));
     }
 
-    [HttpPost()]
+    [HttpPost(), Authorize]
     public IActionResult Create(Question question)
     {
         var repository = new QuestionRepository(new NpgsqlConnection(_connectionString));
@@ -36,7 +37,7 @@ public class QuestionController : ControllerBase
         return Ok(repository.Create(question));
     }
     
-    [HttpDelete("{id}")]
+    [HttpDelete("{id}"), Authorize]
     public IActionResult Delete(int id)
     {
         var repository = new QuestionRepository(new NpgsqlConnection(_connectionString));
