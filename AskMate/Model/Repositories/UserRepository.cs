@@ -27,30 +27,27 @@ public class UserRepository
         adapter.Fill(dataSet);
         var table = dataSet.Tables[0];
 
-        var queryResult = new List<User>();
-        foreach (DataRow row in table.Rows)
+        var queryResult = (from DataRow row in table.Rows
+        select new User
         {
-            queryResult.Add(new User
-            {
-                Id = (int)row["id"],
-                Username = (string)row["username"],
-                Email = (string)row["email"],
-                Password = (string)row["password"],
-                RegistrationTime = (DateTime)row["registration_time"]
-            });
-        }
+            Id = (int)row["id"],
+            Username = (string)row["username"],
+            Email = (string)row["email"],
+            Password = (string)row["password"],
+            RegistrationTime = (DateTime)row["registration_time"]
+        }).ToList();
         _connection.Close();
 
         return queryResult;
     }
     
-    public int Create(User user)
+    public int Create(string username, string email, string password)
     {
         _connection.Open();
         var adapter = new NpgsqlDataAdapter("INSERT INTO users(username, email, password, registration_time) VALUES (:username, :email, :password, :registration_time) RETURNING id", _connection);
-        adapter.SelectCommand?.Parameters.AddWithValue(":username", user.Username);
-        adapter.SelectCommand?.Parameters.AddWithValue(":email", user.Email);
-        adapter.SelectCommand?.Parameters.AddWithValue(":password", user.Password);
+        adapter.SelectCommand?.Parameters.AddWithValue(":username", username);
+        adapter.SelectCommand?.Parameters.AddWithValue(":email", email);
+        adapter.SelectCommand?.Parameters.AddWithValue(":password", password);
         adapter.SelectCommand?.Parameters.AddWithValue(":registration_time", DateTime.Now);
 
         var lastInsertId = (int)adapter.SelectCommand?.ExecuteScalar();
@@ -59,12 +56,12 @@ public class UserRepository
         return lastInsertId;
     }
 
-    public List<Claim> Login(User user)
+    public List<Claim> Login(string username, string email, string password)
     {
         _connection.Open();
 
         var adapter = new NpgsqlDataAdapter("SELECT * FROM users WHERE username = :username", _connection);
-        adapter.SelectCommand?.Parameters.AddWithValue(":username", user.Username);
+        adapter.SelectCommand?.Parameters.AddWithValue(":username", username);
 
         var dataSet = new DataSet();
         adapter.Fill(dataSet);
@@ -72,20 +69,18 @@ public class UserRepository
 
         if (table.Rows.Count > 0)
         {
-            DataRow row = table.Rows[0];
+            var row = table.Rows[0];
 
-            if ((user.Username == (string)row["username"] || user.Email == (string)row["email"]) &&
-                user.Password == (string)row["password"])
+            if ((username == (string)row["username"] || email == (string)row["email"]) &&
+                password == (string)row["password"])
             {
                 _connection.Close();
                 return new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.Name, username),
                     new Claim(ClaimTypes.Role, "user")
                 };
             }
-
-            
         }
         _connection.Close();
         return null;

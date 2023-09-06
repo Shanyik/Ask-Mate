@@ -21,17 +21,15 @@ public class AnswerRepository
         adapter.Fill(dataSet);
         var table = dataSet.Tables[0];
 
-        var queryResult = new List<Answer>();
-        foreach (DataRow row in table.Rows)
-        {
-            queryResult.Add(new Answer
+        var queryResult = (from DataRow row in table.Rows
+            select new Answer
             {
                 Id = (int)row["id"],
                 Message = (string)row["message"],
                 QuestionId = (int)row["question_id"],
+                Accepted = (bool)row["accepted"],
                 SubmissionTime = (DateTime)row["submission_time"]
-            });
-        }
+            }).ToList();
         _connection.Close();
 
         return queryResult;
@@ -55,6 +53,7 @@ public class AnswerRepository
                 Id = (int)row["id"],
                 Message = (string)row["message"],
                 QuestionId = (int)row["question_id"],
+                Accepted = (bool)row["accepted"],
                 SubmissionTime = (DateTime)row["submission_time"]
             });
         }
@@ -63,12 +62,12 @@ public class AnswerRepository
         return queryResult;
     }
     
-    public int Create(Answer answer)
+    public int Create(string message, int questionId)
     {
         _connection.Open();
         var adapter = new NpgsqlDataAdapter("INSERT INTO answers(message, question_id, submission_time) VALUES (:message, :question_id, :submission_time) RETURNING id", _connection);
-        adapter.SelectCommand?.Parameters.AddWithValue(":message", answer.Message);
-        adapter.SelectCommand?.Parameters.AddWithValue(":question_id", answer.QuestionId);
+        adapter.SelectCommand?.Parameters.AddWithValue(":message", message);
+        adapter.SelectCommand?.Parameters.AddWithValue(":question_id", questionId);
         adapter.SelectCommand?.Parameters.AddWithValue(":submission_time", DateTime.Now);
 
         var lastInsertId = (int)adapter.SelectCommand?.ExecuteScalar();
@@ -87,6 +86,37 @@ public class AnswerRepository
         adapter.SelectCommand?.Parameters.AddWithValue(":id", id);
 
         adapter.SelectCommand?.ExecuteNonQuery();
+        _connection.Close();
+    }
+
+    public void Accept(int id, String author)
+    {
+        _connection.Open();
+        
+        var adapter = new NpgsqlDataAdapter("SELECT * FROM questions JOIN answers on questions.id = answers.question_id WHERE answers.id = :id", _connection);
+        adapter.SelectCommand?.Parameters.AddWithValue(":id", id);
+        
+        var dataSet = new DataSet();
+        adapter.Fill(dataSet);
+        var table = dataSet.Tables[0];
+
+        if (table.Rows.Count > 0)
+        {
+            DataRow row = table.Rows[0];
+            if ((string)row["author"] == author)
+            {
+                adapter = new NpgsqlDataAdapter(
+                    "UPDATE answers SET accepted = :accepted WHERE id = :id",
+                    _connection
+                ); 
+        
+                adapter.SelectCommand?.Parameters.AddWithValue(":id", id);
+                adapter.SelectCommand?.Parameters.AddWithValue(":accepted", true);
+        
+                adapter.SelectCommand?.ExecuteNonQuery();
+            }
+        }
+        
         _connection.Close();
     }
 }

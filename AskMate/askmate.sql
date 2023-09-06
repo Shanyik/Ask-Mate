@@ -23,12 +23,14 @@ SET default_with_oids = false;
 
 DROP TABLE IF EXISTS questions;
 DROP TABLE IF EXISTS answers;
+DROP TABLE IF EXISTS users;
 
 
 CREATE TABLE questions (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255),
     description VARCHAR(255),
+    author VARCHAR(255),
     submission_time DATE
 );
 
@@ -36,6 +38,7 @@ CREATE TABLE answers (
     id SERIAL PRIMARY KEY,
     message VARCHAR(255),
     question_id int NOT NULL,
+    accepted boolean DEFAULT false,
     submission_time DATE
 );
 
@@ -47,13 +50,13 @@ CREATE TABLE users (
     registration_time DATE
 );
 
-INSERT INTO questions VALUES ('1','C# definition', 'I would like to ask what is the definition of c#', NOW());
-INSERT INTO questions VALUES ('2','JS definition', 'I would like to ask what is the definition of js', NOW());
-INSERT INTO questions VALUES ('3','Python definition', 'I would like to ask what is the definition of python', NOW());
+INSERT INTO questions VALUES ('1','C# definition', 'I would like to ask what is the definition of c#','Kenyik', NOW());
+INSERT INTO questions VALUES ('2','JS definition', 'I would like to ask what is the definition of js','Kenyik', NOW());
+INSERT INTO questions VALUES ('3','Python definition', 'I would like to ask what is the definition of python', 'NoName', NOW());
 
-INSERT INTO answers VALUES ('1','Dummy c# definition answer', 1, NOW());
-INSERT INTO answers VALUES ('2','Dummy c# definition answer 2', 1, NOW());
-INSERT INTO answers VALUES ('3','Dummy js definition answer', 2, NOW());
-INSERT INTO answers VALUES ('4','Dummy python definition answer', 3, NOW());
+INSERT INTO answers VALUES ('1','Dummy c# definition answer', 1,false , NOW());
+INSERT INTO answers VALUES ('2','Dummy c# definition answer 2', 1,false , NOW());
+INSERT INTO answers VALUES ('3','Dummy js definition answer', 2,false , NOW());
+INSERT INTO answers VALUES ('4','Dummy python definition answer', 3,false , NOW());
 
 INSERT INTO users VALUES ('1','Kenyik', 'kenyik@codecool.hu','Incorrect', NOW());

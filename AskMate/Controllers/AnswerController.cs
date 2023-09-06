@@ -1,4 +1,5 @@
-﻿using AskMate.Model;
+﻿using System.Security.Claims;
+using AskMate.Model;
 using AskMate.Model.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,11 +23,11 @@ public class AnswerController : ControllerBase
     }
     
     [HttpPost(), Authorize]
-    public IActionResult Create(Answer answer)
+    public IActionResult Create(string message, int questionId)
     {
         var repository = new AnswerRepository(new NpgsqlConnection(_connectionString));
 
-        return Ok(repository.Create(answer));
+        return Ok(repository.Create(message, questionId));
     }
     
     [HttpDelete("{id}"), Authorize]
@@ -34,6 +35,19 @@ public class AnswerController : ControllerBase
     {
         var repository = new AnswerRepository(new NpgsqlConnection(_connectionString));
         repository.Delete(id);
+
+        return Ok();
+    }
+    
+    [HttpPut("/Accept/{id}")]
+    public IActionResult Accept(int id)
+    {
+        var repository = new AnswerRepository(new NpgsqlConnection(_connectionString));
+        
+        var userClaimsPrincipal = HttpContext.User;
+        var author = userClaimsPrincipal.FindFirst(ClaimTypes.Name).Value;
+
+        repository.Accept(id, author);
 
         return Ok();
     }

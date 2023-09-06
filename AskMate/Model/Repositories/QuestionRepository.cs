@@ -21,17 +21,15 @@ public class QuestionRepository
         adapter.Fill(dataSet);
         var table = dataSet.Tables[0];
 
-        var queryResult = new List<Question>();
-        foreach (DataRow row in table.Rows)
+        var queryResult = (from DataRow row in table.Rows
+        select new Question
         {
-            queryResult.Add(new Question
-            {
-                Id = (int)row["id"],
-                Title = (string)row["title"],
-                Description = (string)row["description"],
-                SubmissionTime = (DateTime)row["submission_time"]
-            });
-        }
+            Id = (int)row["id"],
+            Title = (string)row["title"],
+            Description = (string)row["description"],
+            Author = (string)row["author"],
+            SubmissionTime = (DateTime)row["submission_time"]
+        }).ToList();
         _connection.Close();
 
         return queryResult;
@@ -52,14 +50,15 @@ public class QuestionRepository
         
         if (table.Rows.Count > 0)
         {
-            DataRow row = table.Rows[0];
-            List<Answer> answers = answerRepository.GetAllByQuestionId((int)row["id"]);
+            var row = table.Rows[0];
+            var answers = answerRepository.GetAllByQuestionId((int)row["id"]);
             
             return new Question
             {
                 Id = (int)row["id"],
                 Title = (string)row["title"],
                 Description = (string)row["description"],
+                Author = (string)row["author"],
                 SubmissionTime = (DateTime)row["submission_time"],
                 Answers = answers
             };
@@ -70,12 +69,15 @@ public class QuestionRepository
         return null;
     }
 
-    public int Create(Question question)
+    public int Create(string title, string description, string author)
     {
+
+        Console.WriteLine(author);
         _connection.Open();
-        var adapter = new NpgsqlDataAdapter("INSERT INTO questions(title, description, submission_time) VALUES (:title, :author, :submission_time) RETURNING id", _connection);
-        adapter.SelectCommand?.Parameters.AddWithValue(":title", question.Title);
-        adapter.SelectCommand?.Parameters.AddWithValue(":author", question.Title);
+        var adapter = new NpgsqlDataAdapter("INSERT INTO questions(title, description, submission_time, author) VALUES (:title, :description, :submission_time, :author) RETURNING id", _connection);
+        adapter.SelectCommand?.Parameters.AddWithValue(":title", title);
+        adapter.SelectCommand?.Parameters.AddWithValue(":description", description);
+        adapter.SelectCommand?.Parameters.AddWithValue(":author", author);
         adapter.SelectCommand?.Parameters.AddWithValue(":submission_time", DateTime.Now);
 
         var lastInsertId = (int)adapter.SelectCommand?.ExecuteScalar();

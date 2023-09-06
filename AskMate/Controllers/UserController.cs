@@ -25,22 +25,22 @@ public class UserController : ControllerBase
     }
     
     [HttpPost()]
-    public IActionResult Create(User user)
+    public IActionResult Create(string username, string email, string password)
     {
         var repository = new UserRepository(new NpgsqlConnection(_connectionString));
 
-        return Ok(repository.Create(user));
+        return Ok(repository.Create(username, email, password));
     }
     
     [HttpPost, Route("login")]
-    public IActionResult Login(User user)
+    public IActionResult Login(string username, string email, string password)
     {
         var repository = new UserRepository(new NpgsqlConnection(_connectionString));
 
-        if (repository.Login(user) != null)
+        var claims = repository.Login(username, email, password);
+        
+        if (claims != null)
         {
-            var claims = repository.Login(user);
-
             var claimsIdentity = new ClaimsIdentity(
                 claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
@@ -58,7 +58,7 @@ public class UserController : ControllerBase
             return Ok();
         }
 
-        return BadRequest();
+        return BadRequest("Something went wrong. Try again!");
     }
 
     [HttpPost, Route("signOut")]
