@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -43,11 +44,14 @@ public class UserRepository
     
     public int Create(string username, string email, string password)
     {
+
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(password, 13);
+        
         _connection.Open();
         var adapter = new NpgsqlDataAdapter("INSERT INTO users(username, email, password, registration_time) VALUES (:username, :email, :password, :registration_time) RETURNING id", _connection);
         adapter.SelectCommand?.Parameters.AddWithValue(":username", username);
         adapter.SelectCommand?.Parameters.AddWithValue(":email", email);
-        adapter.SelectCommand?.Parameters.AddWithValue(":password", password);
+        adapter.SelectCommand?.Parameters.AddWithValue(":password", passwordHash);
         adapter.SelectCommand?.Parameters.AddWithValue(":registration_time", DateTime.Now);
 
         var lastInsertId = (int)adapter.SelectCommand?.ExecuteScalar();
@@ -72,7 +76,7 @@ public class UserRepository
             var row = table.Rows[0];
 
             if ((username == (string)row["username"] || email == (string)row["email"]) &&
-                password == (string)row["password"])
+                BCrypt.Net.BCrypt.Verify(password, (string)row["password"]))
             {
                 _connection.Close();
                 return new List<Claim>
